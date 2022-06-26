@@ -341,6 +341,11 @@
             color: black;
             background-color: rgb(252, 209, 22);
         }
+        
+        .g-checkbox-wiktionary {
+            margin-left: 2rem;
+            color: darkorange;
+        }
 
         .g-checkbox-linguee {
             margin-left: 2rem;
@@ -357,7 +362,7 @@
             color: darkblue;
         }
     </style>
-
+<!--
     <style id="toggle-g-m">
         .g-m,
         .g.g-m.g-sg,
@@ -416,39 +421,93 @@
             visibility: hidden;
         }
     </style>
+-->
 
     <script>
-        function set(el, on, onClass) {
-            if (on) {
-                el.classList.add(onClass);
-            } else {
-                el.classList.remove(onClass);
-            }
-            const s = document.querySelector("style#toggle-" + el.id).sheet;
-            for (let i = 0; i < s.cssRules.length; i++) {
-                const r = s.cssRules[i];
-                if (r.style.visibility) {
-                    r.style.visibility = on ? "visible" : "hidden";
+        /*
+        function setVisible(id, on) {
+            const sheet = document.querySelector("style#toggle-" + id).sheet;
+            for (let i = 0; i < sheet.cssRules.length; i++) {
+                const rule = sheet.cssRules[i];
+                if (rule.style.visibility) {
+                    rule.style.visibility = on ? "visible" : "hidden";
                 }
-                if (r.style.display) {
-                    r.style.display = on ? "inline" : "none";
+                if (rule.style.display) {
+                    rule.style.display = on ? "inline" : "none";
                 }
             };
         }
+        */
 
-        function tog(el, claOn, claOff) {
-            const onClass = 'g-checked';
-            const on = el.classList.contains(onClass);
-            set(el, !on, onClass);
-            if (claOn && claOff) {
-                if (on) {
-                    el.classList.remove(claOn);
-                    el.classList.add(claOff);
-                } else {
-                    el.classList.remove(claOff);
-                    el.classList.add(claOn);
+        function getClassNames(el) {
+            let names = [];
+            for (let i = 0; i < el.classList.length; i++) {
+                names.push(el.classList[i]);
+            }
+            return names;
+        }
+
+        function setElementsVisible(id, on) {
+            console.log("setElementsVisible for " + id);
+            const toggleElement = document.getElementById(id);
+            if (id.startsWith("g-")) {
+                const spans = document.getElementsByTagName("span");
+                console.log(" ... found " + spans.length + " spans.");
+                for (let i = 0; i < spans.length; i++) {
+                    const spanEl = spans[i];
+                    const names = getClassNames(spans[i]);
+                    const hasId = names.includes(id);
+                    console.log(" ... classList " + JSON.stringify(names) + "(" + JSON.stringify(spanEl.innerText) + ") contains " + id + "? " + hasId);
+                    if (hasId) {
+                        const visibility = on? "visible" : "hidden";
+                        console.log(" ... set " + spanEl.id + " to " + visibility);
+                        spanEl.style.visibility = visibility;
+                        spanEl.style.backgroundColor = on? "yellow" : "red";
+                    }
                 }
             }
+            console.log("setElementsVisible for " + id + " done.");
+        } 
+
+        function setClass(el, on, onClass, offClass) {
+            if (on) {
+                if (onClass) {
+                    el.classList.add(onClass);
+                }
+                if (offClass) {
+                    el.classList.remove(offClass);
+                }
+            } else {
+                if (onClass) {
+                    el.classList.remove(onClass);
+                }
+                if (offClass) {
+                    el.classList.add(offClass);
+                }
+            }
+            setElementsVisible(el.id, on);
+        }
+
+        /*
+        function set(el, on, onClass) {
+            setClass(el, on, onClass);
+            setVisible(el.id, on);
+        }
+        */
+
+        function invertClass(el, specificOnClass, specificOffClass) {
+            const on = !el.classList.contains(specificOffClass);
+            setClass(el, on, specificOnClass, specificOffClass);
+            //const onClass = 'g-checked';
+            //set(el, on, onClass);
+        }
+
+        function toggleCheckbox(el) {
+            invertClass(el, 'g-checkbox-pressed', 'g-checkbox-not-pressed');
+        }
+
+        function initCheckbox(el) {
+            invertClass(el, 'g-checkbox-pressed', 'g-checkbox-not-pressed');
         }
 
         function reversoUrl(word) {
@@ -464,6 +523,11 @@
         function forvoUrl(word) {
             const first = word.split("/")[0];
             return `https://forvo.com/word/${first}/#ro`;
+        }
+        
+        function wiktionaryUrl(word) {
+            const first = word.split("/")[0];
+            return `https://en.wiktionary.org/wiki/${first}`;
         }
 
         var urlButton;
@@ -488,6 +552,7 @@
             document.getElementById("linguee").classList.add("g-checkbox-not-pressed");
             document.getElementById("reverso").classList.add("g-checkbox-not-pressed");
             document.getElementById("forvo").classList.add("g-checkbox-not-pressed");
+            document.getElementById("wiktionary").classList.add("g-checkbox-not-pressed");
             const wordElements = document.getElementsByClassName("g-td");
             let text = "";
             for (let i = 0; i < wordElements.length; i++) {
@@ -520,13 +585,14 @@
                 demonstrative în limba Română</a></span>
         <div class="g g-buttons g-showing-group">
             <div class="g g-showing-label">Arată!</div>
-            <span id="g-m" class="g g-checkbox g-checkbox-m " onclick="tog(this, 'g-checkbox-pressed', 'g-checkbox-not-pressed');">m</span>
-            <span id="g-f" class="g g-checkbox g-checkbox-f " onclick="tog(this, 'g-checkbox-pressed', 'g-checkbox-not-pressed');">f</span>
-            <span id="g-sg" class="g g-checkbox g-checkbox-sg " onclick="tog(this, 'g-checkbox-pressed', 'g-checkbox-not-pressed');">sg</span>
-            <span id="g-pl" class="g g-checkbox g-checkbox-pl " onclick="tog(this, 'g-checkbox-pressed', 'g-checkbox-not-pressed');">pl</span>
-            <span id="g-near" class="g g-checkbox g-checkbox-near " onclick="tog(this, 'g-checkbox-pressed', 'g-checkbox-not-pressed');">aproape</span>
-            <span id="g-far" class="g g-checkbox g-checkbox-far " onclick="tog(this, 'g-checkbox-pressed', 'g-checkbox-not-pressed');">departe</span>
-            <span id="g-identity" class="g g-checkbox g-checkbox-identity " onclick="tog(this, 'g-checkbox-pressed', 'g-checkbox-not-pressed');">identitate</span>
+            <span id="g-m" class="g g-checkbox g-checkbox-m " onclick="toggleCheckbox(this);">m</span>
+            <span id="g-f" class="g g-checkbox g-checkbox-f " onclick="toggleCheckbox(this);">f</span>
+            <span id="g-sg" class="g g-checkbox g-checkbox-sg " onclick="toggleCheckbox(this);">sg</span>
+            <span id="g-pl" class="g g-checkbox g-checkbox-pl " onclick="toggleCheckbox(this);">pl</span>
+            <span id="g-near" class="g g-checkbox g-checkbox-near " onclick="toggleCheckbox(this);">aproape</span>
+            <span id="g-far" class="g g-checkbox g-checkbox-far " onclick="toggleCheckbox(this);">departe</span>
+            <span id="g-identity" class="g g-checkbox g-checkbox-identity " onclick="toggleCheckbox(this);">identitate</span>
+            <span id="wiktionary" class="g g-checkbox g-checkbox-wiktionary" name="wiktionary" onclick="use(this, wiktionaryUrl)">Wiktionary</span>
             <span id="linguee" class="g g-checkbox g-checkbox-linguee" name="linguee" onclick="use(this, lingueeUrl)">Linguee</span>
             <span id="reverso" class="g g-checkbox g-checkbox-reverso" name="reverso" onclick="use(this, reversoUrl)">Reverso</span>
             <span id="forvo" class="g g-checkbox g-checkbox-forvo" name="forvo" onclick="use(this, forvoUrl)">Forvo</span>
@@ -667,11 +733,10 @@
     </footer>
     <script>
         /* hack */
-        const claOn = "g-checkbox-pressed";
-        const claOff = "g-checkbox-not-pressed";
-        for (let id of["g-m", "g-f", "g-sg", "g-pl", "g-near", "g-far", "g-identity"]) {
+        const checkboxes = ["g-m", "g-f", "g-sg", "g-pl", "g-near", "g-far", "g-identity"];
+        for (let id of checkboxes) {
             const el = document.getElementById(id);
-            tog(el, claOn, claOff);
+            initCheckbox(el);
         }
         initWords();
     </script>
